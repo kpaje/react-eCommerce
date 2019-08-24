@@ -15,6 +15,7 @@ class App extends React.Component {
     };
   }
 
+  //default login state for user to prevent memory leaks when App unmounts
   unsubscribeFromAuth = null;
 
   componentDidMount() {
@@ -30,7 +31,7 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        <Header />
+        <Header currentUser={this.state.currentUsers} />
         <Switch>
           <Route exact path="/" component={HomePage} />
           <Route exact path="/shop" component={ShopPage} />
