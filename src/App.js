@@ -8,38 +8,50 @@ import SignInAndSignUpPage from "./page/sign-in-and-sign-up/sign-in-and-sign-up.
 import { auth, createUserProfileDocument } from "./firebase/firebase.utils";
 
 class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      currentUsers: null
-    };
-  }
+	constructor() {
+		super();
+		this.state = {
+			currentUsers: null
+		};
+	}
 
-  //default login state for user to prevent memory leaks when App unmounts
-  unsubscribeFromAuth = null;
+	//default login state for user to prevent memory leaks when App unmounts
+	unsubscribeFromAuth = null;
 
-  componentDidMount() {
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(async user => {
-      createUserProfileDocument(user);
-    });
-  }
+	componentDidMount() {
+		this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+			if (userAuth) {
+				const userRef = await createUserProfileDocument(userAuth);
 
-  componentWillUnmount() {
-    this.unsubscribeFromAuth();
-  }
+				userRef.onSnapshot(snapShot => {
+					this.setState({
+						currentUser: {
+							id: snapShot.id,
+							...snapShot.data()
+						}
+					});
+				});
+			}
+			this.setState({ currentUser: userAuth });
+		});
+	}
 
-  render() {
-    return (
-      <div>
-        <Header currentUser={this.state.currentUsers} />
-        <Switch>
-          <Route exact path="/" component={HomePage} />
-          <Route exact path="/shop" component={ShopPage} />
-          <Route exact path="/signin" component={SignInAndSignUpPage} />
-        </Switch>
-      </div>
-    );
-  }
+	componentWillUnmount() {
+		this.unsubscribeFromAuth();
+	}
+
+	render() {
+		return (
+			<div>
+				<Header currentUser={this.state.currentUsers} />
+				<Switch>
+					<Route exact path="/" component={HomePage} />
+					<Route exact path="/shop" component={ShopPage} />
+					<Route exact path="/signin" component={SignInAndSignUpPage} />
+				</Switch>
+			</div>
+		);
+	}
 }
 
 export default App;
